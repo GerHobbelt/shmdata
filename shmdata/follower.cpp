@@ -38,7 +38,14 @@ Follower::Follower(const std::string& path,
 Follower::~Follower() {
   is_destructing_ = true;
   quit_.store(true);
-  if (monitor_.valid()) monitor_.get();
+  {
+    std::lock_guard _{monitor_mtx_};
+    if (monitor_.valid()) monitor_.get();
+  }
+  {
+    std::lock_guard _{reader_mtx_};
+    reader_.reset();
+  }
 }
 
 void Follower::monitor() {
@@ -49,8 +56,10 @@ void Follower::monitor() {
     if (fileMonitor::is_unix_socket(path_, log_)) {
       do_sleep = false;
       // log_->debug("file detected, creating reader");
-      reader_.reset(
-          new Reader(path_, on_data_cb_, osc_, [&]() { on_server_disconnected(); }, log_));
+
+      std::lock_guard _{reader_mtx_};
+      reader_.reset(new Reader(
+          path_, on_data_cb_, osc_, [&]() { on_server_disconnected(); }, log_));
       if (*reader_.get()) {
         quit_.store(true);
       } else {
@@ -78,6 +87,7 @@ void Follower::on_server_disconnected() {
   // starting monitor
   if (!is_destructing_) {
     quit_.store(false);
+    std::lock_guard _{monitor_mtx_};
     monitor_ = std::async(std::launch::async, [this]() { monitor(); });
   }
   // calling user callback

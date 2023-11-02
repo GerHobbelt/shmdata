@@ -15,8 +15,10 @@
 
 #include <sys/socket.h>
 #include <sys/types.h>
+
 #include <array>
 #include <functional>
+#include <mutex>
 #include <string>
 
 namespace shmdata {
@@ -67,6 +69,7 @@ struct ClientSide {
   onUpdate on_update_cb_{};
   UpdateMsg update_msg_{};
   QuitMsg quit_msg_{};
+  std::mutex update_mtx_;
   ClientSide(onServerConnected osc, onServerDisconnected osd, onUpdate ou)
       : on_connect_cb_(osc), on_disconnect_cb_(osd), on_update_cb_(ou) {}
 };

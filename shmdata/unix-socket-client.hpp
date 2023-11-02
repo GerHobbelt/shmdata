@@ -43,8 +43,8 @@ class UnixSocketClient : public SafeBoolIdiom {
   // connection
   std::mutex connected_mutex_{};
   std::condition_variable cv_{};
-  bool connected_{false};
-  bool is_valid_{false};
+  std::atomic_bool connected_{false};
+  std::atomic_bool is_valid_{false};
   UnixSocketProtocol::ClientSide* proto_{nullptr};
   bool is_valid() const final;
   void server_interaction();

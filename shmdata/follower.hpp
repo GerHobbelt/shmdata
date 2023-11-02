@@ -52,14 +52,17 @@ class Follower {
   Follower& operator=(Follower&&) = delete;
 
  private:
-  bool is_destructing_{false};
+  std::atomic_bool is_destructing_{false};
   AbstractLogger* log_;
   std::string path_;
   Reader::onData on_data_cb_;
   Reader::onServerConnected osc_;
   Reader::onServerDisconnected osd_;
+  std::mutex monitor_mtx_;
   std::future<void> monitor_{};
   std::atomic<bool> quit_{false};
+
+  std::mutex reader_mtx_;
   std::unique_ptr<Reader> reader_;
   void monitor();
   void on_server_disconnected();

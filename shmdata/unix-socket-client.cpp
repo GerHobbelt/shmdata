@@ -104,10 +104,12 @@ void UnixSocketClient::server_interaction() {
     }
     if (FD_ISSET(socket_.fd_, &rset)) {
       ssize_t nread;
-      if (!connected_)
+      if (!connected_) {
         nread = read(socket_.fd_, &proto_->data_, sizeof(UnixSocketProtocol::onConnectData));
-      else
+      } else {
+        std::lock_guard _{proto_->update_mtx_};
         nread = read(socket_.fd_, &proto_->update_msg_, sizeof(proto_->update_msg_));
+      }
       if (nread <= 0) {
         if (nread < 0) {
           int err = errno;
@@ -140,9 +142,16 @@ void UnixSocketClient::server_interaction() {
           std::lock_guard<std::mutex> lock(connected_mutex_);
           cv_.notify_one();
         } else {
-          if (1 == proto_->update_msg_.msg_type_)
-            proto_->on_update_cb_(proto_->update_msg_.size_);
-          else if ((2 == proto_->update_msg_.msg_type_)) {
+          unsigned short msg_type{};
+          size_t msg_size{};
+          {
+            std::lock_guard _{proto_->update_mtx_};
+            msg_type = proto_->update_msg_.msg_type_;
+            msg_size = proto_->update_msg_.size_;
+          }
+          if (1 == msg_type) {
+            proto_->on_update_cb_(msg_size);
+          } else if ((2 == msg_type)) {
             proto_->on_disconnect_cb_();
             log_->debug("client received quit");
             // disable socket
