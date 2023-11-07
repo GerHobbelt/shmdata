@@ -16,6 +16,7 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/types.h>
+#include <iostream>
 
 namespace shmdata {
 
@@ -75,9 +76,12 @@ void sysVSem::cancel_commited_reader() {
 bool sysVSem::is_valid() const { return 0 < semid_; }
 
 ReadLock::ReadLock(sysVSem* sem) : sem_(sem) {
+
+  std::cout << "wait for read lock" << "\n";
   if (-1 == semop(sem_->semid_,
                   semops::read_start,
                   sizeof(semops::read_start) / sizeof(*semops::read_start))) {
+    std::cout << "took a read lock" << "\n";
     int err = errno;
     sem_->log_->debug("semop ReadLock %", strerror(err));
     valid_ = false;
@@ -87,16 +91,23 @@ ReadLock::ReadLock(sysVSem* sem) : sem_(sem) {
 ReadLock::~ReadLock() {
   if (is_valid())
     semop(sem_->semid_, semops::read_end, sizeof(semops::read_end) / sizeof(*semops::read_end));
+  std::cout << "releases one reader for " << sem_->semid_ << "\n";
+
 }
 
 WriteLock::WriteLock(sysVSem* sem) : sem_(sem) {
+  std::cout << "try to take writelock" << "\n";
+
   if (-1 == semop(sem_->semid_,
                   semops::write_start,
                   sizeof(semops::write_start) / sizeof(*semops::write_start))) {
     int err = errno;
     sem_->log_->error("semop WriteLock: %", strerror(err));
     valid_ = false;
+    std::cout << "invalid writelock" << "\n";
   }
+  std::cout << "got writelock" << "\n";
+
 }
 
 bool WriteLock::commit_readers(short num_reader) {
@@ -108,11 +119,15 @@ bool WriteLock::commit_readers(short num_reader) {
     sem_->log_->error("semop commit readers: %", strerror(err));
     return false;
   }
+  std::cout << "commits " << sem_->semid_ << " for " << num_reader << " readers" << "\n";
+
   return true;
 }
 WriteLock::~WriteLock() {
   if (!is_valid()) return;
   semop(sem_->semid_, semops::write_end, sizeof(semops::write_end) / sizeof(*semops::write_end));
+  std::cout << "releases write lock" << "\n";
+
 }
 
 }  // namespace shmdata

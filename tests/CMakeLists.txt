@@ -49,3 +49,5 @@ set_tests_properties(check-sdflow PROPERTIES ENVIRONMENT "PATH=${CMAKE_BINARY_DI
 
 add_test(NAME check-sdcrash COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/check-sdcrash.sh)
 set_tests_properties(check-sdcrash PROPERTIES ENVIRONMENT "PATH=${CMAKE_BINARY_DIR}/utils:${PATH}")
+
+add_test(NAME check-crashing-client COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/check-crashing-client.sh)

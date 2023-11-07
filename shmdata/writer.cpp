@@ -9,7 +9,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  */
-
+#include <iostream>
 #include "./writer.hpp"
 #include <cstring>  // memcpy
 #include "./reader.hpp"
@@ -71,22 +71,29 @@ Writer::Writer(const std::string& path,
   }
   srv_->start_serving();
   log_->debug("writer initialized");
+  std::cout << "writer started" << "\n";
+
 }
 
 bool Writer::copy_to_shm(const void* data, size_t size) {
   bool res = true;
+  std::cout << "copy to shm" << "\n";
   {
     if (nullptr == sem_) {
+      std::cout << "semaphore is not initialized" << "\n";
       log_->warning("semaphore is not initialized");
       return false;
     }
 
     if (!(*sem_.get())) {
+      std::cout << "semaphore was not correctly initialized" << "\n";
       log_->warning("semaphore was not correctly initialized");
       return false;
     }
     WriteLock wlock(sem_.get());
     if (size > connect_data_.shm_size_) {
+      std::cout << "resizing shmdata" << "\n";
+
       log_->debug("resizing shmdata (%) from % bytes to % bytes",
                   path_,
                   std::to_string(connect_data_.shm_size_),
@@ -96,10 +103,11 @@ bool Writer::copy_to_shm(const void* data, size_t size) {
       connect_data_.shm_size_ = size;
       alloc_size_ = size;
       if (!shm_) {
+        std::cout << "resizing failed" << "\n";
         log_->error("resizing shared memory failed");
         return false;
       }
-      
+
     }
     auto num_readers = srv_->notify_update(size);
     if (0 < num_readers) {
@@ -158,6 +166,7 @@ OneWriteAccess::OneWriteAccess(
     : writer_(writer), wlock_(sem), mem_(mem), srv_(srv), log_(log) {}
 
 size_t OneWriteAccess::shm_resize(size_t new_size) {
+  std::cout << "shm_rezize" << "\n";
   writer_->shm_.reset();
   writer_->shm_.reset(
       new sysVShm(ftok(writer_->path_.c_str(), 'n'), new_size, log_, /*owner = */ true));
@@ -169,7 +178,11 @@ size_t OneWriteAccess::shm_resize(size_t new_size) {
 }
 
 short OneWriteAccess::notify_clients(size_t size) {
+
+  std::cout << "notify clients" << "\n";
   if (has_notified_) {
+    std::cout << "has notified" << "\n";
+
     log_->warning(
         "one notification only is expected per OneWriteAccess instance, "
         "ignoring current invocation");
