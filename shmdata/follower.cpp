@@ -15,7 +15,6 @@
 #include <utility>
 #include "./file-monitor.hpp"
 #include "./unix-socket-server.hpp"
-#include <iostream>
 
 namespace shmdata {
 
@@ -32,11 +31,8 @@ Follower::Follower(const std::string& path,
       reader_(fileMonitor::is_unix_socket(path_, log_)
                   ? new Reader(path_, on_data_cb_, osc_, [&]() { on_server_disconnected(); }, log_)
                   : nullptr) {
-
-  if (!reader_ || !(*reader_.get())) {
-    std::cout << "file did not exist" << "\n";
+  if (!reader_ || !(*reader_.get()))
     monitor_ = std::async(std::launch::async, [this]() { monitor(); });
-  }
 }
 
 Follower::~Follower() {
@@ -52,20 +48,14 @@ void Follower::monitor() {
   while (!quit_.load()) {
     if (fileMonitor::is_unix_socket(path_, log_)) {
       do_sleep = false;
-
-      log_->debug("file detected, creating reader");
-      std::cout << "file detected, creating reader" << "\n";
-
-      std::lock_guard _{reader_mtx_};
-      reader_.reset(new Reader(
-          path_, on_data_cb_, osc_, [&]() { on_server_disconnected(); }, log_));
+      // log_->debug("file detected, creating reader");
+      reader_.reset(
+          new Reader(path_, on_data_cb_, osc_, [&]() { on_server_disconnected(); }, log_));
       if (*reader_.get()) {
         quit_.store(true);
       } else {
         reader_.reset();
-        std::cout << "reader failed but file exists" << "\n";
-
-        log_->debug("file % exists but reader failed", path_);
+        // log_->debug("file % exists but reader failed", path_);
         // if (1 == successive_fail) {
         //   if(!force_sockserv_cleaning(path_, log_))
         //     log_->warning("follower shmpath is not dead shmdata that can be
@@ -79,7 +69,6 @@ void Follower::monitor() {
       }
     }
     if (do_sleep) std::this_thread::sleep_for(std::chrono::milliseconds(30));
-
   }  // end while
   quit_.store(true);
 }
