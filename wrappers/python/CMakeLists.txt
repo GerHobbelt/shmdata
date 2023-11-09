@@ -42,4 +42,16 @@ if (WITH_PYTHON)
     # Test
     add_test(pyshmdata_basic python3 ${CMAKE_CURRENT_SOURCE_DIR}/example.py)
     set_tests_properties(pyshmdata_basic PROPERTIES ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}")
+
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_reader.py
+      DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_writer.py
+      DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/check-dead-shmdata-management.sh
+      DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+    add_test(NAME check-dead-shmdata-management COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/check-dead-shmdata-management.sh)
+
 endif ()

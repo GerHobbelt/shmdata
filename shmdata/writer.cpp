@@ -9,7 +9,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  */
-
 #include "./writer.hpp"
 #include <cstring>  // memcpy
 #include "./reader.hpp"
@@ -48,17 +47,17 @@ Writer::Writer(const std::string& path,
     }
     if (!can_read) {
       log_->debug("writer detected a dead Shmdata, will clean and retry");
-      force_sockserv_cleaning(path, log);
-      srv_.reset(
-          new UnixSocketServer(path, &proto_, log, [&](int) { sem_->cancel_commited_reader(); }, unix_permission));
+      force_semaphore_cleaning(ftok(path.c_str(), 'm'), log);
+      sem_.reset(new sysVSem(ftok(path.c_str(), 'm'), log, /*owner = */ true, unix_permission));
       force_shm_cleaning(ftok(path.c_str(), 'n'), log);
       shm_.reset(new sysVShm(ftok(path.c_str(), 'n'),
                              memsize,
                              log,
                              /*owner = */ true,
                              unix_permission));
-      force_semaphore_cleaning(ftok(path.c_str(), 'm'), log);
-      sem_.reset(new sysVSem(ftok(path.c_str(), 'm'), log, /*owner = */ true, unix_permission));
+      force_sockserv_cleaning(path, log);
+      srv_.reset(
+          new UnixSocketServer(path, &proto_, log, [&](int) { sem_->cancel_commited_reader(); }, unix_permission));
       is_valid_ = (*srv_.get()) && (*shm_.get()) && (*sem_.get());
     } else {
       log_->error("an other writer is using the same path");
@@ -99,7 +98,7 @@ bool Writer::copy_to_shm(const void* data, size_t size) {
         log_->error("resizing shared memory failed");
         return false;
       }
-      
+
     }
     auto num_readers = srv_->notify_update(size);
     if (0 < num_readers) {
