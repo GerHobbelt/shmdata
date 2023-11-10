@@ -52,6 +52,12 @@ if (WITH_PYTHON)
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/check-dead-shmdata-management.sh
       DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/check-crashing-client.sh
+      DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
     add_test(NAME check-dead-shmdata-management COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/check-dead-shmdata-management.sh)
+
+    add_test(NAME check-crashing-client COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/check-crashing-client.sh)
+
 
 endif ()
