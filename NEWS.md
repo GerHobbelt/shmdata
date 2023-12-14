@@ -2,6 +2,15 @@ NEWS
 ====
 Here you will find a high level list of new features and bugfixes for each releases. 
 
+shmdata 1.3.74 (2023-12-14)
+---------------------------
+This is an official release in the 1.3 stable series.
+
+Improvements:
+* 🐛  Properly manage resources when a dead shmdata is detected by a writer
+* 🐛  Adds a timed reset on the reader semaphore when a writer tries to write so as... 
+* 🐛  Fix some thread-safety issues
+
 shmdata 1.3.72 (2022-10-17)
 ---------------------------
 This is an official release in the 1.3 stable series.
