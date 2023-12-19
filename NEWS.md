@@ -2,14 +2,16 @@ NEWS
 ====
 Here you will find a high level list of new features and bugfixes for each releases. 
 
-shmdata 1.3.74 (2023-12-14)
+shmdata 1.3.74-rc1 (2023-12-19)
 ---------------------------
 This is an official release in the 1.3 stable series.
 
 Improvements:
-* 🐛  Properly manage resources when a dead shmdata is detected by a writer
-* 🐛  Adds a timed reset on the reader semaphore when a writer tries to write so as... 
-* 🐛  Fix some thread-safety issues
+* 🐛 Properly manage resources when a dead shmdata is detected by a writer ([!89](https://gitlab.com/sat-mtl/tools/shmdata/-/merge_requests/89))
+  * fixes If a "dead" shmdata is found by a writer, it resets its UnixSocketServer and then makes a new semaphore. This leaves a gap of time where a client can decide to connect to the wrong semaphore ID ([!25](https://gitlab.com/sat-mtl/tools/shmdata/-/issues/25))
+* 🐛 Adds a timed reset on the reader semaphore when a writer tries to write so as... ([!90](https://gitlab.com/sat-mtl/tools/shmdata/-/merge_requests/90))
+  * fixes If a connected reader crashes in the middle of its on_buffer callback it will bring down the writer with it. ([!24](https://gitlab.com/sat-mtl/tools/shmdata/-/issues/24))
+* 🐛 Fix some thread-safety issues ([!88](https://gitlab.com/sat-mtl/tools/shmdata/-/merge_requests/88))
 
 shmdata 1.3.72 (2022-10-17)
 ---------------------------
