@@ -13,6 +13,7 @@
 #include "./follower.hpp"
 #include <thread>
 #include <utility>
+
 #include "./file-monitor.hpp"
 #include "./unix-socket-server.hpp"
 
@@ -64,17 +65,6 @@ void Follower::monitor() {
         quit_.store(true);
       } else {
         reader_.reset();
-        // log_->debug("file % exists but reader failed", path_);
-        // if (1 == successive_fail) {
-        //   if(!force_sockserv_cleaning(path_, log_))
-        //     log_->warning("follower shmpath is not dead shmdata that can be
-        //     cleaned");
-        //   else
-        //     log_->debug("shmdata follower detected and cleaned a possible
-        //     dead shmdata: %",
-        //                 path_);
-        //   successive_fail = 0;
-        // } else { ++successive_fail; }
       }
     }
     if (do_sleep) std::this_thread::sleep_for(std::chrono::milliseconds(30));
