@@ -46,17 +46,22 @@ UnixSocketClient::UnixSocketClient(const std::string& path, AbstractLogger* log)
 }
 
 UnixSocketClient::~UnixSocketClient() {
-  if (done_.valid()) {
-    if (is_valid_) {
-      std::lock_guard<std::mutex> lock(connected_mutex_);
-      if (socket_.fd_ != -1) {
-        auto res = send(socket_.fd_, &proto_->quit_msg_, sizeof(proto_->quit_msg_), MSG_NOSIGNAL);
-        if (-1 == res) log_->error("send (client trying to quit)");
-      }
+  if (is_valid_) {
+    std::lock_guard<std::mutex> lock(connected_mutex_);
+    if (socket_.fd_ != -1) {
+      auto res = send(socket_.fd_, &proto_->quit_msg_, sizeof(proto_->quit_msg_), MSG_NOSIGNAL);
+      if (-1 == res) log_->error("send (client trying to quit)");
     }
-    quit_.store(1);
-    done_.get();
   }
+
+  quit_.store(1);
+
+  // if we didn't event start the thread, don't wait.
+  if (socket_thread_.joinable()) {
+    // now that we have stored quit, wait for the thread to finish.
+    socket_thread_.join();
+  }
+
 }
 
 bool UnixSocketClient::is_valid() const { return is_valid_; }
@@ -66,16 +71,15 @@ bool UnixSocketClient::start(UnixSocketProtocol::ClientSide* proto) {
     log_->error("shmdata socket client needs a non null protocol");
     return false;
   }
-  if (done_.valid()) {
+  if (socket_thread_.joinable()) {
     log_->warning("shmdata socket client start has already invoked, ignoring");
     is_valid_ = false;
     return false;
   }
   proto_ = proto;
-  done_ = std::async(
-      std::launch::async, [](UnixSocketClient* self) { self->server_interaction(); }, this);
+  socket_thread_ = std::thread([&]() { this->server_interaction(); });
   std::unique_lock<std::mutex> lock(connected_mutex_);
-  cv_.wait_for(lock, std::chrono::milliseconds(1000));
+  cv_.wait_for(lock, std::chrono::milliseconds(1000), [&](){return connected_.load();});
   is_valid_ = is_valid_ && connected_;
   return connected_;
 }
@@ -170,7 +174,7 @@ void UnixSocketClient::server_interaction() {
       }
     }
     if (0 != quit_.load()) quit = true;
-  }  // while (!quit_)
+  }
 }
 
 }  // namespace shmdata

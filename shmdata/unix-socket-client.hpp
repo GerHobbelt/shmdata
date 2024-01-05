@@ -14,8 +14,9 @@
 #define _SHMDATA_UNIX_SOCKET_CLIENT_H_
 
 #include <atomic>
-#include <future>
+#include <thread>
 #include <string>
+#include <condition_variable>
 #include "./abstract-logger.hpp"
 #include "./safe-bool-idiom.hpp"
 #include "./unix-socket-protocol.hpp"
@@ -38,7 +39,7 @@ class UnixSocketClient : public SafeBoolIdiom {
   std::string path_;
   UnixSocket socket_;
   AbstractLogger* log_;
-  std::future<void> done_{};
+  std::thread socket_thread_{};
   std::atomic_short quit_{0};
   // connection
   std::mutex connected_mutex_{};
