@@ -4,6 +4,7 @@
 * Jérémie Soria
 * Guillaume Riou
 * François Ubald Brien
+* Olivier Gauthier
 * Michał Seta
 * Matthew Hills
 * Francis Lecavalier
@@ -11,7 +12,6 @@
 * Mike Wozniewski
 * Vanshita Verma
 * Thomas Piquet
-* Olivier Gauthier
 * Marie-Eve Dumas
 * Jean-Michaël Celerier
 * Aurélien Perronneau (OpSocket)

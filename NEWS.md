@@ -2,6 +2,14 @@ NEWS
 ====
 Here you will find a high level list of new features and bugfixes for each releases. 
 
+shmdata 1.3.74-rc2 (2024-01-05)
+---------------------------
+This is an official release in the 1.3 stable series.
+
+Improvements:
+* Fixes a bug where we would await an empty future. Replaces the std::async with a thread and fixes the bug ([!92](https://gitlab.com/sat-mtl/tools/shmdata/-/merge_requests/92))
+  * partial fix for 🐛 Switcher crash when an NDI source that is encoded by an nvenc stops transmiting ([#234](https://gitlab.com/sat-mtl/tools/switcher/-/issues/234)) and Changing resolution of remote NDI source while an NDI Input (attached to that source) is active crashes switcher ([#587](https://gitlab.com/sat-mtl/tools/scenic/scenic/-/issues/587))
+
 shmdata 1.3.74-rc1 (2023-12-19)
 ---------------------------
 This is an official release in the 1.3 stable series.
