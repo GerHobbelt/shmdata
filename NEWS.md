@@ -2,19 +2,13 @@ NEWS
 ====
 Here you will find a high level list of new features and bugfixes for each releases. 
 
-shmdata 1.3.74-rc2 (2024-01-05)
+shmdata 1.3.74 (2024-03-20)
 ---------------------------
 This is an official release in the 1.3 stable series.
 
 Improvements:
 * Fixes a bug where we would await an empty future. Replaces the std::async with a thread and fixes the bug ([!92](https://gitlab.com/sat-mtl/tools/shmdata/-/merge_requests/92))
   * partial fix for 🐛 Switcher crash when an NDI source that is encoded by an nvenc stops transmiting ([#234](https://gitlab.com/sat-mtl/tools/switcher/-/issues/234)) and Changing resolution of remote NDI source while an NDI Input (attached to that source) is active crashes switcher ([#587](https://gitlab.com/sat-mtl/tools/scenic/scenic/-/issues/587))
-
-shmdata 1.3.74-rc1 (2023-12-19)
----------------------------
-This is an official release in the 1.3 stable series.
-
-Improvements:
 * 🐛 Properly manage resources when a dead shmdata is detected by a writer ([!89](https://gitlab.com/sat-mtl/tools/shmdata/-/merge_requests/89))
   * fixes If a "dead" shmdata is found by a writer, it resets its UnixSocketServer and then makes a new semaphore. This leaves a gap of time where a client can decide to connect to the wrong semaphore ID ([#25](https://gitlab.com/sat-mtl/tools/shmdata/-/issues/25))
 * 🐛 Adds a timed reset on the reader semaphore when a writer tries to write so as... ([!90](https://gitlab.com/sat-mtl/tools/shmdata/-/merge_requests/90))
